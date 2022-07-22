@@ -1,0 +1,191 @@
+<Button>
+    size_hint: (0.1, 0.1)
+
+<Label>
+    size_hint: (0.1, 0.1)
+
+<CheckBox>
+    size_hint: (0.1, 0.1)
+
+#:import Factory kivy.factory.Factory
+<WarningPopup@Popup>:
+    title: 'Warning'
+    size_hint: (None, None)
+    size: (400, 250)
+
+    FloatLayout:
+        Label:
+            text: "Not all the requested fields were provided. \nMake sure the needed information is given and \ntry again."
+            size_hint: 0.6, 0.2
+            pos_hint: {"x":0.2, "top":0.8}
+
+        Button:
+            text: "Close"
+            size_hint: 0.8, 0.2
+            pos_hint: {"x":0.1, "y":0.1}
+            on_press: root.dismiss()
+
+
+<WindowsFileChooser>
+    inp:directory_choice
+    out:output_path
+    grid_mode: grid_box
+    stack_mode: stack_box
+    x_dim: x_dim
+    y_dim: y_dim
+    framerate:framerate
+    is_gif: is_gif
+
+    GridLayout:
+        cols: 1
+        rows: 5
+        size: root.width, root.height
+
+        GridLayout:
+            cols: 3
+            rows: 1
+            size_hint: (None, None)
+            size: root.width, 50
+            padding: 10
+            spacing: 10
+
+            Label:
+                text: "Folder:"
+
+            TextInput:
+                id: directory_choice
+                multiline: False
+                hint_text: "Folder Path"
+
+            PathButton:
+                text: "Browse"
+                on_press: directory_choice.text = self.get_path()
+
+        GridLayout:
+            cols: 2
+            rows: 1
+            size_hint: (None, None)
+            size: root.width, 200
+            padding: 10
+            spacing: 10
+
+            GridLayout:
+                cols: 1
+                rows: 3
+                size_hint: (0.5, 1)
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint: (1, 0.2)
+
+                    Label:
+                        text: "Grid:"
+
+                    CheckBox:
+                        id: grid_box
+                        allow_no_selection: False
+                        active: True
+                        group: 'mode_choice'
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    opacity: 1 if grid_box.active else 0
+
+                    Label:
+                        id: dimensions_label
+                        text: "Dimensions:"
+
+                    TextInput:
+                        id: x_dim
+                        multiline: False
+                        hint_text: "X"
+                        input_filter: "int"
+                        size_hint: (0.05, 0.4)
+
+
+                    TextInput:
+                        id: y_dim
+                        multiline: False
+                        hint_text: "Y"
+                        input_filter: "int"
+                        size_hint: (0.05, 0.4)
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    opacity: 0
+
+
+            GridLayout:
+                cols: 1
+                rows: 3
+                size_hint: (0.5, 1)
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint: (1, 0.2)
+
+                    Label:
+                        text: "Stack:"
+
+                    CheckBox:
+                        id: stack_box
+                        allow_no_selection: False
+                        group: 'mode_choice'
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    opacity: 1 if stack_box.active else 0
+
+                    Label:
+                        text: "Framerate:"
+
+                    TextInput:
+                        id: framerate
+                        multiline: False
+                        hint_text: "Number of Frames"
+                        input_filter: "int"
+                        size_hint: (0.1, 0.4)
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    opacity: 1 if stack_box.active else 0
+
+                    Label:
+                        text: "Gif:"
+
+                    CheckBox:
+                        id: is_gif
+
+        GridLayout:
+            cols: 3
+            rows: 1
+            size_hint: (None, None)
+            size: root.width, 50
+            padding: 10
+            spacing: 10
+
+            Label:
+                text: "Output \nfolder: "
+
+            TextInput:
+                id: output_path
+                multiline: False
+                hint_text: "Output Path"
+
+            PathButton:
+                text: "Browse"
+                on_press: output_path.text = self.get_path()
+
+        AnchorLayout:
+            size_hint: (None, None)
+            size: root.width, 100
+            anchor_x: 'right'
+            anchor_y: 'center'
+            padding: 10
+            spacing: 10
+
+            Button:
+                id: submit_button
+                text: "Submit"
+                size_hint: (0.2, 0.4)
+                on_press: Factory.WarningPopup().open() if root.check_values() else root.submit()
