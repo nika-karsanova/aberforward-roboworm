@@ -26,7 +26,7 @@ class ImageGrouper:
         self.files = files
         self.imgs = [Image.fromarray(img) for img in self.files]
         self.merged_image: Image = Image
-        self.data = io.BytesIO()
+        # self.data = io.BytesIO()
 
     def unite(self,
               images: list[Image]):  # makes strips of given PIL images
