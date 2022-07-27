@@ -45,16 +45,28 @@ class LoadingScreen(Screen):
         self.t = 0
 
     def thread_it(self):
+        self.s = 0  # this will start the bar progress from 0
+
         threading.Thread(target=self.submit).start()
 
+    def clear_fields(self):
+        self.inp.text = ""
+        self.out.text = ""
+        self.grid_mode.active = True
+        self.x_dim.text = ""
+        self.y_dim.text = ""
+        self.framerate.text = ""
+        self.is_gif.active = False
+
     def update_bar(self, dt):
-        self.ids.progress_widget.ids.progress_bar_label.text = f'{self.s} out of {self.t}...'
+        self.ids.progress_widget.ids.progress_bar_label.text = f'{self.s} out of {self.t}... '
+        self.ids.progress_widget.ids.progress_bar.value = self.normalize()
 
         if self.ids.progress_widget.ids.progress_bar.value == 1:
-            self.s = 0
+            self.ids.progress_widget.ids.progress_bar_label.text += f"DONE!"
             self.ids.progress_widget.ids.progress_bar_button.opacity = 1
-
-        self.ids.progress_widget.ids.progress_bar.value = self.normalize()
+            self.ids.progress_widget.ids.progress_bar_button.disabled = False
+            self.clear_fields()
 
     def normalize(self):
         return (self.s - 0) / (self.t - 0)
@@ -65,6 +77,12 @@ class LoadingScreen(Screen):
 
         Takes in input from the GUI to establish the directories and other settings.
         """
+
+        # inp_dirs = self.inp.text.split(", ")
+        #
+        # for d in inp_dirs:
+        #     if not os.path.isdir(d):
+        #         continue
 
         if self.grid_mode.active:
             self.t = get_total_files(self.inp.text, files=True)
@@ -77,12 +95,15 @@ class LoadingScreen(Screen):
                 Clock.schedule_once(self.update_bar)
 
         elif self.stack_mode.active:
-            self.t = get_total_files(self.inp.text, dir=True)
+            self.t = get_total_files(self.inp.text, dirs=True)
 
-            fetch_dirs(path=self.inp.text,
-                       outpath=self.out.text,
-                       gif=bool(self.is_gif.active),
-                       framerate=int(self.framerate.text))
+            for n in fetch_dirs(path=self.inp.text,
+                                outpath=self.out.text,
+                                gif=bool(self.is_gif.active),
+                                framerate=int(self.framerate.text)):
+
+                self.s += n
+                Clock.schedule_once(self.update_bar)
 
 
 class ProgressHeartbeat(Widget):
@@ -98,6 +119,9 @@ class PathButton(Button):
         # alternative of return filedialog.askopenfilenames() is possible for selection of specific files
         # tkfilebrowser.askopendirnames() from a custom module for tkinker could be modified to select multiple dirs
         return filedialog.askdirectory()
+
+        # dirs = tkfilebrowser.askopendirnames(title='File Browser', initialdir=os.path.expanduser("~/Desktop"))
+        # return ", ".join(str(x) for x in dirs)
 
 
 class WindowsFileChooser(Widget):

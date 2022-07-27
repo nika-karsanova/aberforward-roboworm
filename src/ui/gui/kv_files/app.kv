@@ -60,6 +60,7 @@
     BoxLayout:
 		orientation: "vertical"
 		size: root.width, root.height
+		padding: 10
 
 		Label:
 			id: progress_bar_label
@@ -68,22 +69,23 @@
 
 		ProgressBar:
 			id: progress_bar
-#			Set Default Value
-#			value: .25
 			min: 0
 			max: 1
 			pos_hint: {'center_x':0.5, 'center_y':0.5}
 			size_hint_x: .8
 
-		Button:
-		    id: progress_bar_button
-		    text: 'Back'
-		    opacity: 0
-		    pos_hint: {'center_x':0.5, 'center_y':0.5}
-		    on_press:
-		        progress_bar_label.text = ""
-		        progress_bar.value = 0
-		        app.root.current = "main_screen"
+        Button:
+            id: progress_bar_button
+            text: 'Back'
+            opacity: 0
+            disabled: True
+            pos_hint: {'center_x':0.5, 'y':-0.5}
+            on_press:
+                app.root.current = "main_screen"
+                progress_bar_label.text = ""
+                progress_bar.value = 0
+                self.disabled = True
+                self.opacity = 0
 
 
 <WindowsFileChooser>

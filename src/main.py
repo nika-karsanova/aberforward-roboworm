@@ -4,14 +4,15 @@ It is responsible for setting up the main module and configuring the behaviour o
 
 The main outputs can be categorized into multiple groups:
 
-    - (N/2) x 2 grid images out of N given photos, where N is an even number between [2..10]
-    - a continuous horizontal merge of N images, where N is number of images between [2..10]
-    - animations, consisting out of N provided images, where N is number of images between [2..100]
+    - X x Y grid out of N given photos, where X is number of columns in the grid, and Y is number of rows
+    - animations, consisting out of N provided images
 
 """
 
 __author__ = 'Nika Karsanova'
 __email__ = 'vek2@aber.ac.uk'
+
+import os.path
 
 import ui.gui.app as app
 
