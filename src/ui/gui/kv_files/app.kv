@@ -9,6 +9,7 @@
 
 <WindowManager>:
     id: window_manager
+
     MainScreen:
     LoadingScreen:
 
@@ -20,14 +21,10 @@
 	    id: main_screen_chooser
 
 <LoadingScreen>:
-    inp: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.directory_choice
-    out: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.output_path
-    grid_mode: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.grid_box
-    stack_mode: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.stack_box
-    x_dim: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.x_dim
-    y_dim: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.y_dim
-    framerate: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.framerate
-    is_gif: root.manager.get_screen("main_screen").ids.main_screen_chooser.ids.is_gif
+    dirs: root.manager.get_screen("main_screen").ids.main_screen_chooser
+    progress_label: progress_widget.ids.progress_bar_label
+    progress_back_button: progress_widget.ids.progress_bar_button
+    progress_bar:progress_widget.ids.progress_bar
 
     id: loading_screen
 	name: "loading_screen"
@@ -35,26 +32,6 @@
 
 	ProgressHeartbeat:
 	    id: progress_widget
-
-
-
-#:import Factory kivy.factory.Factory
-<WarningPopup@Popup>:
-    title: 'Warning'
-    size_hint: (None, None)
-    size: (400, 250)
-
-    FloatLayout:
-        Label:
-            text: "Not all the requested fields were provided. \nMake sure the needed information is given and \ntry again."
-            size_hint: 0.6, 0.2
-            pos_hint: {"x":0.2, "top":0.8}
-
-        Button:
-            text: "Close"
-            size_hint: 0.8, 0.2
-            pos_hint: {"x":0.1, "y":0.1}
-            on_press: root.dismiss()
 
 <ProgressHeartbeat>
     BoxLayout:
@@ -64,6 +41,7 @@
 
 		Label:
 			id: progress_bar_label
+			halign: 'center'
 			text: ""
 			pos_hint: {'center_x':0.5, 'center_y':0.5}
 
@@ -87,6 +65,42 @@
                 self.disabled = True
                 self.opacity = 0
 
+#:import Factory kivy.factory.Factory
+<WarningPopup@Popup>:
+    title: 'Warning'
+    size_hint: (None, None)
+    size: (400, 250)
+
+    FloatLayout:
+        Label:
+            text: "Not all the requested fields were provided. \nMake sure the needed information is given and \ntry again."
+            size_hint: 0.6, 0.2
+            pos_hint: {"x":0.2, "top":0.8}
+
+        Button:
+            text: "Close"
+            size_hint: 0.8, 0.2
+            pos_hint: {"x":0.1, "y":0.1}
+            on_press: root.dismiss()
+
+
+#:import Factory kivy.factory.Factory
+<DirectoriesPopup@Popup>:
+    title: 'Warning'
+    size_hint: (None, None)
+    size: (400, 250)
+
+    FloatLayout:
+        Label:
+            text: "Maximum number of directories was provided. \nPlease, process current directories before adding more."
+            size_hint: 0.6, 0.2
+            pos_hint: {"x":0.2, "top":0.8}
+
+        Button:
+            text: "Close"
+            size_hint: 0.8, 0.2
+            pos_hint: {"x":0.1, "y":0.1}
+            on_press: root.dismiss()
 
 <WindowsFileChooser>
     inp:directory_choice
@@ -100,8 +114,15 @@
 
     GridLayout:
         cols: 1
-        rows: 5
+        rows: 6
         size: root.width, root.height
+
+        Label:
+            id: current_directory
+            text: "Directory 1 out of 10..."
+            size_hint: (None, None)
+            size: root.width, 25
+            font_size: 12
 
         GridLayout:
             cols: 3
@@ -239,15 +260,34 @@
                 on_press: output_path.text = self.get_path()
 
         AnchorLayout:
-            size_hint: (None, None)
-            size: root.width, 100
             anchor_x: 'right'
             anchor_y: 'center'
-            padding: 10
-            spacing: 10
+            size_hint: (None, None)
+            size: root.width, 100
 
-            Button:
-                id: submit_button
-                text: "Submit"
-                size_hint: (0.2, 0.4)
-                on_press: Factory.WarningPopup().open() if root.check_values() else root.check_screen()
+            BoxLayout:
+                orientation: "horizontal"
+                padding: 10
+                spacing: 10
+
+                Button:
+                    id: back_button
+                    text: 'Back'
+                    size_hint: (0.2, 0.4)
+                    disabled: True
+                    opacity: 0
+                    on_press: root.back()
+
+                Button:
+                    id: next_button
+                    text: 'Next'
+                    size_hint: (0.2, 0.4)
+                    disabled: False
+                    opacity: 1
+                    on_press: Factory.WarningPopup().open() if root.check_values() else Factory.DirectoriesPopup().open() if root.confirm_dir_total() else root.next()
+
+                Button:
+                    id: submit_button
+                    size_hint: (0.2, 0.4)
+                    text: "Submit"
+                    on_press: Factory.WarningPopup().open() if root.check_values() else root.change_screen()
