@@ -30,7 +30,19 @@ To use CLI instead, the respective function from *cli* folder needs to be called
 
 ## Input Format ##
 
-TBU.
+As was previously mentioned, software is configured to work with a particular structure and specific naming conventions expected 
+as the standard output of the Roboworm platform. 
+
+For grid (tiles of images with dimensions in the format of at least 2x2) a folder should be provided, which contains appropriate
+image identifier that's what the program uses to determine the images that should be merged together. For samples of that, see `data/grid`
+folder.
+
+For stacks (animations), the folder provided should have further folders in it, with the sorted order of these folders denoting the
+respectful frames of the animation. For example, in the provided example in the *data* folder, `data/stack/Timepoint_1` denoted frame 1 of 
+animations to be created. 
+
+The formats of images currently accepted are limited to the ones accepted by `imread` function of OpenCV: this includes TIFF, PNG, JPEG files 
+among some others. 
 
 ## Installation Notes ##
 
@@ -52,4 +64,9 @@ Now, test the program using your own images or download samples from *data* fold
 ### Executable ###
 
 TBU.
+
+## Notes ##
+
+Be aware that this piece of software is not yet completed, and has a number of issues that will be addressed during refactoring stage. 
+In particular, this concerns data validation topic, performance optimization as well as documentation.
 
