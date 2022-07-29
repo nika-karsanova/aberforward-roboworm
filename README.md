@@ -21,6 +21,7 @@ The structure of the repo is as follows:
 |   |       └───kv_files
 │   ├───main.py
 └───README.md
+└───requirements.txt
 ```
 
 Where *model* folder contains the logic of the image and animation creation, and the *ui* folder contains files that are responsible 
@@ -31,7 +32,9 @@ To use CLI instead, the respective function from *cli* folder needs to be called
 
 TBU.
 
-## Installation Notes - building from source ##
+## Installation Notes ##
+
+### Building from source ###
 
 Copy the GitHub repo in a folder of your choice. 
 
@@ -46,7 +49,7 @@ From their, navigate to *src* folder and run `python main.py` or equivalent. At 
 
 Now, test the program using your own images or download samples from *data* folder.
 
-## Installation Notes - executable ##
+### Executable ###
 
 TBU.
 
