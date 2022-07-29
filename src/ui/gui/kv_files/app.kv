@@ -21,7 +21,7 @@
 	    id: main_screen_chooser
 
 <LoadingScreen>:
-    dirs: root.manager.get_screen("main_screen").ids.main_screen_chooser
+    msc: root.manager.get_screen("main_screen").ids.main_screen_chooser
     progress_label: progress_widget.ids.progress_bar_label
     progress_back_button: progress_widget.ids.progress_bar_button
     progress_bar:progress_widget.ids.progress_bar
@@ -40,9 +40,10 @@
 		padding: 10
 
 		Label:
+		    size_hint: (0.2, 0.2)
 			id: progress_bar_label
 			halign: 'center'
-			text: ""
+			text: "Starting..."
 			pos_hint: {'center_x':0.5, 'center_y':0.5}
 
 		ProgressBar:
@@ -60,8 +61,9 @@
             pos_hint: {'center_x':0.5, 'y':-0.5}
             on_press:
                 app.root.current = "main_screen"
-                progress_bar_label.text = ""
+                progress_bar_label.text = "Starting..."
                 progress_bar.value = 0
+
                 self.disabled = True
                 self.opacity = 0
 
@@ -73,6 +75,7 @@
 
     FloatLayout:
         Label:
+            halign: 'center'
             text: "Not all the requested fields were provided. \nMake sure the needed information is given and \ntry again."
             size_hint: 0.6, 0.2
             pos_hint: {"x":0.2, "top":0.8}
@@ -92,6 +95,7 @@
 
     FloatLayout:
         Label:
+            halign: 'center'
             text: "Maximum number of directories was provided. \nPlease, process current directories before adding more."
             size_hint: 0.6, 0.2
             pos_hint: {"x":0.2, "top":0.8}
@@ -119,7 +123,7 @@
 
         Label:
             id: current_directory
-            text: "Directory 1 out of 10..."
+            text: "Directory 1 out of 10"
             size_hint: (None, None)
             size: root.width, 25
             font_size: 12

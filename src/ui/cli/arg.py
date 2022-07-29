@@ -1,8 +1,6 @@
 import argparse
 import os
 
-from model import fetch_files
-
 """
 Configuration of Argument Parser object to use as a CLI interface of the application.
 """

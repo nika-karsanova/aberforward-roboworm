@@ -1,12 +1,8 @@
-import concurrent.futures
 import copy
-import os
 import threading
-import time
 import tkinter as tk
 from queue import Queue
 from tkinter import filedialog
-import tkfilebrowser
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -32,7 +28,7 @@ class MainScreen(Screen):
 
 
 class LoadingScreen(Screen):
-    dirs = ObjectProperty(None)  # this is a reference to widget in the main screen
+    msc = ObjectProperty(None)  # this is a reference to widget in the Main Screen
     progress_label = ObjectProperty(None)
     progress_back_button = ObjectProperty(None)
     progress_bar = ObjectProperty(None)
@@ -43,78 +39,55 @@ class LoadingScreen(Screen):
         self.s = 0
         self.t = 0
 
+        self.dirs = {}  # data on all directories to be processed from Main Screen widget
         self.total_dirs = 1
         self.current_dir = 1
 
-        self.inp = ''
-        self.out = ''
-        self.grid_mode = True
-        self.stack_mode = False
-        self.x_dim = 2
-        self.y_dim = 2
-        self.framerate = 7
-        self.is_gif = False
+        self.inp: str = ''
+        self.out: str = ''
+        self.grid_mode: bool = True
+        self.stack_mode: bool = False
+        self.x_dim: int = 2
+        self.y_dim: int = 2
+        self.framerate: int = 7
+        self.is_gif: bool = False
 
     def thread_it(self):
-        self.dirs = self.dirs.get_dirs()  # this is fetching the info about dirs from the windget in the main screen
+        self.progress_back_button.bind(on_press=self.reset_current_dir_index)
+        self.dirs = self.msc.get_dirs()  # this is fetching the info about dirs from the widget in the main screen
         self.total_dirs = len(self.dirs)
 
         def worker():
             while True:
-                item = q.get()
+                item = q.get()  # directory data
                 self.submit(item)
                 q.task_done()
 
-                self.current_dir += 1
                 self.s = 0
 
         q = Queue()
+
+        for item in self.dirs:
+            q.put(self.dirs[item])
 
         for i in range(1):
             t = threading.Thread(target=worker)
             t.daemon = True
             t.start()
 
-        for item in self.dirs:
-            q.put(self.dirs[item])
-
-        # q.join()
-
-        # q = []
-        #
-        # for d in self.dirs:
-        #     q.append(self.dirs[d])
-        #
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        #     executor.map(self.submit, q)
-
-        # for d in self.dirs:
-        #     self.current_dir = d
-        #
-        #     self.inp = self.dirs[d]['inp']
-        #     self.out = self.dirs[d]['out']
-        #     self.grid_mode = self.dirs[d]['grid_mode']
-        #     self.stack_mode = self.dirs[d]['stack_mode']
-        #     self.x_dim = self.dirs[d]['x_dim']
-        #     self.y_dim = self.dirs[d]['y_dim']
-        #     self.framerate = self.dirs[d]['framerate']
-        #     self.is_gif = self.dirs[d]['is_gif']
-        #
-        #     t = threading.Thread(target=self.submit, daemon=True, )  # runs the work on a directory in its individual
-        #     t.start()
-
     def update_bar(self, dt):
-        self.progress_label.text = "\n".join([f'Directory {self.current_dir} out of {self.total_dirs}...',
-                                              f"{self.s} files out of {self.t}..."])
+        self.progress_label.text = "\n".join([f'Directory {self.current_dir} out of {self.total_dirs}',
+                                              f"{self.s} files out of {self.t}",
+                                              f"{int(self.normalize()*100)}% out of 100%"])
 
         self.progress_bar.value = self.normalize()
 
-        if self.progress_bar.value == 1 and self.current_dir == self.total_dirs:
+        if self.progress_bar.value == 1 and self.current_dir >= self.total_dirs:
             self.progress_label.text += f"\nDONE!"
             self.progress_back_button.opacity = 1
             self.progress_back_button.disabled = False
 
-        elif self.progress_bar.value == 1 and self.current_dir != self.total_dirs:
+        elif self.progress_bar.value == 1 and self.current_dir < self.total_dirs:
             self.progress_bar.value = 0
 
     def normalize(self):
@@ -144,7 +117,7 @@ class LoadingScreen(Screen):
                                  dim_x=int(self.x_dim),
                                  dim_y=int(self.y_dim)):
                 self.s += n
-                Clock.schedule_once(self.update_bar)  # updates the progress bar through the Main thread
+                Clock.schedule_once(self.update_bar, 1.5)  # updates the progress bar through the Main thread
 
         elif self.stack_mode:
             self.t = get_total_files(self.inp, dirs=True)
@@ -155,6 +128,13 @@ class LoadingScreen(Screen):
                                 framerate=int(self.framerate)):
                 self.s += n
                 Clock.schedule_once(self.update_bar)
+
+        self.current_dir += 1
+
+    def reset_current_dir_index(self, instance):
+        # print("before", self.current_dir)
+        self.current_dir = 1
+        # print("after", self.current_dir)
 
 
 class ProgressHeartbeat(Widget):
@@ -216,8 +196,14 @@ class WindowsFileChooser(Widget):
 
         return False
 
+    def get_dirs(self):
+        dirs_copy = copy.deepcopy(self.dirs)
+        self.dirs.clear()
+
+        return dirs_copy
+
     def update_counter(self):
-        self.ids.current_directory.text = f"Directory {self.current_dir} out of 10..."
+        self.ids.current_directory.text = f"Directory {self.current_dir} out of 10"
 
     def fill_fields(self):
         if self.current_dir in self.dirs:
@@ -285,12 +271,6 @@ class WindowsFileChooser(Widget):
         self.ids.back_button.disabled = True
 
         App.get_running_app().root.current = "loading_screen"
-
-    def get_dirs(self):
-        dirs_copy = copy.deepcopy(self.dirs)
-        self.dirs.clear()
-
-        return dirs_copy
 
 
 class Application(App):

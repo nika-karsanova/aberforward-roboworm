@@ -12,8 +12,6 @@ The main outputs can be categorized into multiple groups:
 __author__ = 'Nika Karsanova'
 __email__ = 'vek2@aber.ac.uk'
 
-import os.path
-
 import ui.gui.app as app
 
 if __name__ == '__main__':
