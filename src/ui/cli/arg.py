@@ -1,9 +1,8 @@
-import argparse
-import os
-
 """
 Configuration of Argument Parser object to use as a CLI interface of the application.
 """
+import argparse
+import os
 
 
 def arg_init():
@@ -29,6 +28,7 @@ def arg_init():
     p.add_argument('outpath', type=validate, help='Directory to output the files into.')
     p.add_argument('-dim', type=int, nargs=2, help='Dimensions of the grid to be made.')
     p.add_argument('-fr', '-framerate', type=int, help='Framerate of the stack to be made.')
+    p.add_argument('-g', '-gif', type=bool, help="True, if you want the stack to be made as a GIF.")
 
     args = p.parse_args()
 
@@ -37,5 +37,3 @@ def arg_init():
     outpath = args.outpath
     x, y = args.dim
     framerate = args.fr
-
-

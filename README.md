@@ -1,4 +1,4 @@
-# Roboworm Image Processing — AberForward 2022 Project
+# Roboworm Image Processing — AberForward 2022 Project #
 
 This repo contains logic, GUI and CLI configurations of the Roboworm Image Processing project created as part of the AberForward Placement in 2022. 
 It was developed for the research team working on Schistosomiasis Research as a matter of automating the process of image analysis produced by Roboworm platform.
