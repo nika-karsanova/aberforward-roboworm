@@ -68,5 +68,5 @@ TBU.
 ## Notes ##
 
 Be aware that this piece of software is not yet completed, and has a number of issues that will be addressed during refactoring stage. 
-In particular, this concerns data validation topic and performance optimization.
+In particular, this concerns data validation and performance optimization.
 
