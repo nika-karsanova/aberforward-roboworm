@@ -106,6 +106,25 @@
             pos_hint: {"x":0.1, "y":0.1}
             on_press: root.dismiss()
 
+#:import Factory kivy.factory.Factory
+<PathDoesNotExistPopup@Popup>:
+    title: 'Warning'
+    size_hint: (None, None)
+    size: (400, 250)
+
+    FloatLayout:
+        Label:
+            halign: 'center'
+            text: "Input or Output path provided do not exist. \nMake sure the correct information is given \nand try again."
+            size_hint: 0.6, 0.2
+            pos_hint: {"x":0.2, "top":0.8}
+
+        Button:
+            text: "Close"
+            size_hint: 0.8, 0.2
+            pos_hint: {"x":0.1, "y":0.1}
+            on_press: root.dismiss()
+
 <WindowsFileChooser>
     inp:directory_choice
     out:output_path
@@ -288,10 +307,10 @@
                     size_hint: (0.2, 0.4)
                     disabled: False
                     opacity: 1
-                    on_press: Factory.WarningPopup().open() if root.check_values() else Factory.DirectoriesPopup().open() if root.confirm_dir_total() else root.next()
+                    on_press: Factory.PathDoesNotExistPopup().open() if not root.path_validation() else Factory.WarningPopup().open() if root.check_values() else Factory.DirectoriesPopup().open() if root.confirm_dir_total() else root.next()
 
                 Button:
                     id: submit_button
                     size_hint: (0.2, 0.4)
                     text: "Submit"
-                    on_press: Factory.WarningPopup().open() if root.check_values() else root.change_screen()
+                    on_press: Factory.PathDoesNotExistPopup().open() if not root.path_validation() else Factory.WarningPopup().open() if root.check_values() else root.change_screen()

@@ -24,6 +24,10 @@ from model.setup import fetch_files, fetch_dirs, get_total_files
 Window.minimum_height = 500
 Window.minimum_width = 700
 
+import time
+time1 = 0
+time2 = 0
+
 
 class WindowManager(ScreenManager):
     """
@@ -105,28 +109,38 @@ class LoadingScreen(Screen):
         data in the given folder.
         """
 
+        global time1
+        time1 = time.time()
+
         self.progress_back_button.bind(on_press=self.reset_current_dir_index)
         self.dirs = self.msc.get_dirs()  # this is fetching the info about dirs from the widget in the main screen
         self.total_dirs = len(self.dirs)
+        for d in self.dirs:
+            if self.dirs[d]['grid_mode']:
+                self.total_files += get_total_files(self.dirs[d]['inp'], files=True)
+
+            else:
+                self.total_files += get_total_files(self.dirs[d]['inp'], dirs=True)
 
         def worker():
             while True:
-                item = q.get()  # directory data
-
-                if not os.path.isdir(item):
-                    continue
+                item = q.get()  # directory data -> {'inp': input_path, 'out': output_path ... 'is_gif': False}
 
                 self.submit(item)
                 q.task_done()
 
-                self.files_processed = 0
+                # self.files_processed = 0
 
         q = Queue()
 
         for item in self.dirs:
             q.put(self.dirs[item])
 
-        for i in range(1):
+        import psutil
+        thread_max = psutil.cpu_count(logical=True) // 2
+        thread_max = len(self.dirs) if len(self.dirs) < thread_max else thread_max
+
+        for i in range(thread_max):
             t = threading.Thread(target=worker)
             t.daemon = True
             t.start()
@@ -138,19 +152,25 @@ class LoadingScreen(Screen):
 
         :param dt: delta time, when the even is triggered by the Kivy internal Clock object
         """
-        self.progress_label.text = "\n".join([f'Directory {self.current_dir} out of {self.total_dirs}',
-                                              f"{self.files_processed} files out of {self.total_files}",
-                                              f"{int(self.normalize()*100)}% out of 100%"])
+        self.progress_label.text = "\n".join([
+            # f'Directory {self.current_dir} out of {self.total_dirs}',
+            f"{self.files_processed} files out of {self.total_files}",
+            f"{int(self.normalize() * 100)}% out of 100%"])
 
         self.progress_bar.value = self.normalize()
 
-        if self.progress_bar.value == 1 and self.current_dir >= self.total_dirs:
+        # if self.progress_bar.value == 1 and self.current_dir >= self.total_dirs:
+        if self.progress_bar.value == 1:
+            global time2
+            global time1
+            time2 = time.time()
+            print(time2 - time1, "seconds")
             self.progress_label.text += f"\nDONE!"
             self.progress_back_button.opacity = 1
             self.progress_back_button.disabled = False
 
-        elif self.progress_bar.value == 1 and self.current_dir < self.total_dirs:
-            self.progress_bar.value = 0
+        # elif self.progress_bar.value == 1 and self.current_dir < self.total_dirs:
+        #     self.progress_bar.value = 0
 
     def normalize(self):
         """
@@ -178,7 +198,7 @@ class LoadingScreen(Screen):
         self.is_gif = d['is_gif']
 
         if self.grid_mode:
-            self.total_files = get_total_files(self.inp, files=True)
+            # self.total_files = get_total_files(self.inp, files=True)
 
             for n in fetch_files(path=self.inp,
                                  outpath=self.out,
@@ -188,7 +208,7 @@ class LoadingScreen(Screen):
                 Clock.schedule_once(self.update_bar, 1.5)  # updates the progress bar through the Main thread
 
         elif self.stack_mode:
-            self.total_files = get_total_files(self.inp, dirs=True)
+            # self.total_files = get_total_files(self.inp, dirs=True)
 
             for n in fetch_dirs(path=self.inp,
                                 outpath=self.out,
@@ -221,6 +241,7 @@ class PathButton(Button):
     """
     Custom button that configures tkinker FileExplorer.
     """
+
     @staticmethod
     def get_path():
         root = tk.Tk()
@@ -271,7 +292,8 @@ class WindowsFileChooser(Widget):
         super().__init__(**kwargs)
 
         self.dirs = {}
-        self.total_dirs = 1  # number of dirs
+        # self.total_dirs = 1  # number of dirs
+        self.dirs_limit = 10 # max number of dirs allowed
         self.current_dir = 1
 
     def check_values(self):
@@ -284,10 +306,7 @@ class WindowsFileChooser(Widget):
         grid_reqs = {self.inp.text, self.out.text, self.x_dim.text, self.y_dim.text}
         stack_reqs = {self.inp.text, self.out.text, self.framerate.text}
 
-        if self.grid_mode.active and "" in grid_reqs or self.stack_mode.active and "" in stack_reqs:
-            return True
-
-        return False
+        return self.grid_mode.active and "" in grid_reqs or self.stack_mode.active and "" in stack_reqs
 
     def confirm_dir_total(self):
         """
@@ -295,10 +314,7 @@ class WindowsFileChooser(Widget):
 
         :return: True if number of directories provided is maxed out, False otherwise.
         """
-        if self.current_dir >= 10:
-            return True
-
-        return False
+        return self.current_dir >= self.dirs_limit
 
     def get_dirs(self):
         """
@@ -315,7 +331,7 @@ class WindowsFileChooser(Widget):
         """
         Updates the label for the UI to track number of directories, which were already made.
         """
-        self.ids.current_directory.text = f"Directory {self.current_dir} out of 10"
+        self.ids.current_directory.text = f"Directory {self.current_dir} out of {self.dirs_limit}"
 
     def fill_fields(self):
         """
@@ -360,8 +376,17 @@ class WindowsFileChooser(Widget):
             'is_gif': self.is_gif.active
         }
 
-        if not self.check_values():
+        if not self.check_values() and self.path_validation():
             self.dirs[self.current_dir] = current
+
+    def path_validation(self):
+        """
+        Verifies the existence of the paths to be used for fetching files.
+
+        :return True, if directories are valid. A popup will not be displayed. False otherwise.
+        """
+
+        return os.path.isdir(self.inp.text) and os.path.isdir(self.out.text)
 
     def back(self):
         """
@@ -395,7 +420,7 @@ class WindowsFileChooser(Widget):
         counters.
         """
         self.collect_data()
-        self.total_dirs = 1
+        # self.total_dirs = 1
         self.current_dir = 1
         self.clear_fields()
         self.update_counter()

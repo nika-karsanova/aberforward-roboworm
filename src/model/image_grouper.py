@@ -23,7 +23,8 @@ class ImageGrouper:
         """
 
         self.files = files
-        self.imgs = [Image.fromarray(img) for img in self.files]
+        self.imgs = self.files
+        # self.imgs = [Image.fromarray(img) for img in self.files]
         self.merged_image: Image = Image
         # self.data = io.BytesIO()
 
@@ -35,17 +36,30 @@ class ImageGrouper:
         :param images: PIL Image objects derived from numpy arrays
         """
 
-        widths, heights = zip(*(i.size for i in images))
+        # widths, heights = zip(*(i.size for i in images))
+        #
+        # total_width = sum(widths)
+        # max_height = max(heights)
+        #
+        # self.merged_image = Image.new('L', (total_width, max_height))
+        #
+        # x_offset = 0
+        # for image in images:
+        #     self.merged_image.paste(image, (x_offset, 0))
+        #     x_offset += image.size[0]
 
-        total_width = sum(widths)
-        max_height = max(heights)
+        heights, widths = zip(*(i.shape[:2] for i in images))
 
-        self.merged_image = Image.new('L', (total_width, max_height))
+        self.merged_image = np.zeros((max(heights), sum(widths), 3), dtype=np.uint8)
+        self.merged_image[:, :] = (255, 255, 255)
 
-        x_offset = 0
-        for image in images:
-            self.merged_image.paste(image, (x_offset, 0))
-            x_offset += image.size[0]
+        offset = images[0].shape[1]
+
+        self.merged_image[:images[0].shape[0], :offset, :3] = images[0]
+
+        for i in range(1, len(images)):
+            self.merged_image[:images[i].shape[0], offset:offset + images[i].shape[1], :3] = images[i]
+            offset += images[i].shape[1]
 
     def strip(self):
         """
@@ -79,17 +93,26 @@ class ImageGrouper:
             wip.append(self.merged_image)
             offset += size_x  # shift offset
 
+        merged_heights, merged_widths = zip(*(i.shape[:2] for i in wip))
+
+        self.merged_image = np.zeros((sum(merged_heights), max(merged_widths), 3), dtype=np.uint8)
+
+        f_offset = wip[0].shape[0]
+
+        self.merged_image[:f_offset, :wip[0].shape[1], :3] = wip[0]
+        self.merged_image[f_offset:f_offset + wip[1].shape[0], :wip[1].shape[1]] = wip[1]
+
         # build final image
-        widths, heights = zip(*(i.size for i in wip))
-        max_width = max(widths)
-        total_height = sum(heights)
-
-        self.merged_image = Image.new('L', (max_width, total_height))  # make the final image
-
-        y_offset = 0
-        for i in range(size_y):
-            self.merged_image.paste(wip[i], (0, y_offset))
-            y_offset += wip[i].size[1]
+        # widths, heights = zip(*(i.size for i in wip))
+        # max_width = max(widths)
+        # total_height = sum(heights)
+        #
+        # self.merged_image = Image.new('L', (max_width, total_height))  # make the final image
+        #
+        # y_offset = 0
+        # for i in range(size_y):
+        #     self.merged_image.paste(wip[i], (0, y_offset))
+        #     y_offset += wip[i].size[1]
 
         # self.merged_image.save(self.data, 'png')
 
@@ -135,4 +158,5 @@ class ImageGrouper:
 
         :param filename: custom filename
         """
-        self.merged_image.save(f"{filename}.png", "PNG")
+        cv2.imwrite(f"{filename}.png", self.merged_image)
+        # self.merged_image.save(f"{filename}.png", "PNG")
