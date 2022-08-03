@@ -13,24 +13,6 @@ __author__ = 'Nika Karsanova'
 __email__ = 'vek2@aber.ac.uk'
 
 import ui.gui.app as app
-import ui.cli as cli
-
-import argparse
-
 
 if __name__ == '__main__':
     app.run()
-    # cli.arg_init()
-
-    # p = argparse.ArgumentParser()
-    # p.add_argument('-gui', type=bool)
-    #
-    # args = p.parse_args()
-    #
-    # gui = args.gui or True
-    #
-    # if gui:
-    #     app.run()
-    #
-    # else:
-    #     cli.arg_init()

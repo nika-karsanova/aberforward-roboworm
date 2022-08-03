@@ -29,8 +29,10 @@ def get_total_files(path: str,
     elif dirs:
         ds = [os.path.join(path, x) for x in os.listdir(path) if os.path.isdir(os.path.join(path, x))]
         filenames = [x for x in os.listdir(ds[0]) if 'Thumb' not in x and 'HTD' not in x]
+        # not accurate number of files, but alligns with the count produced as a result of fetch_dirs() generator
         s = len(ds) * len(filenames)
 
+        # accurate number of files if needed
         # for d in ds:
         #     s += len([x for x in os.listdir(d) if 'Thumb' not in x and 'HTD' not in x])
 
