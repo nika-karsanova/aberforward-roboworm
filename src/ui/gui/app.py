@@ -4,7 +4,6 @@ This module contains all the main Kivy widgets defined for the purpose of the GU
 
 import copy
 import os.path
-
 import threading
 import tkinter as tk
 from queue import Queue
@@ -24,9 +23,9 @@ from model.setup import fetch_files, fetch_dirs, get_total_files
 Window.minimum_height = 500
 Window.minimum_width = 700
 
-import time
-time1 = 0
-time2 = 0
+# TODO: add verification of the provided paths (e.g., that path for grids is not only valid but also has TIF files)
+# TODO: refactor some of the GUI elements
+# TODO: look into packaging the application using pyinstaller
 
 
 class WindowManager(ScreenManager):
@@ -101,6 +100,8 @@ class LoadingScreen(Screen):
         self.framerate: int = 7
         self.is_gif: bool = False
 
+        self.parallelism = False
+
     def thread_it(self):
         """
         Called upon entering the Loading Screen.
@@ -109,27 +110,30 @@ class LoadingScreen(Screen):
         data in the given folder.
         """
 
-        global time1
-        time1 = time.time()
+        self.parallelism = self.msc.ids.parallelism.active  # if true, run in multithreaded mode
+
+        self.files_processed = 0
+        self.total_files = 0
 
         self.progress_back_button.bind(on_press=self.reset_current_dir_index)
+
         self.dirs = self.msc.get_dirs()  # this is fetching the info about dirs from the widget in the main screen
         self.total_dirs = len(self.dirs)
-        for d in self.dirs:
-            if self.dirs[d]['grid_mode']:
-                self.total_files += get_total_files(self.dirs[d]['inp'], files=True)
 
-            else:
-                self.total_files += get_total_files(self.dirs[d]['inp'], dirs=True)
+        if self.parallelism:  # get total number of files in all provided directories
+            for d in self.dirs:
+                self.total_files += get_total_files(self.dirs[d]['inp'],
+                                                    files=self.dirs[d]['grid_mode'],
+                                                    dirs=self.dirs[d]['stack_mode'])
 
         def worker():
             while True:
                 item = q.get()  # directory data -> {'inp': input_path, 'out': output_path ... 'is_gif': False}
-
                 self.submit(item)
                 q.task_done()
 
-                # self.files_processed = 0
+                if not self.parallelism:
+                    self.files_processed = 0
 
         q = Queue()
 
@@ -137,10 +141,10 @@ class LoadingScreen(Screen):
             q.put(self.dirs[item])
 
         import psutil
-        thread_max = psutil.cpu_count(logical=True) // 2
+        thread_max = 1 if not self.parallelism else psutil.cpu_count(logical=True) // 2
         thread_max = len(self.dirs) if len(self.dirs) < thread_max else thread_max
 
-        for i in range(thread_max):
+        for i in range(thread_max):  # 1 if parallelism ain't selected
             t = threading.Thread(target=worker)
             t.daemon = True
             t.start()
@@ -152,25 +156,26 @@ class LoadingScreen(Screen):
 
         :param dt: delta time, when the even is triggered by the Kivy internal Clock object
         """
-        self.progress_label.text = "\n".join([
-            # f'Directory {self.current_dir} out of {self.total_dirs}',
-            f"{self.files_processed} files out of {self.total_files}",
-            f"{int(self.normalize() * 100)}% out of 100%"])
+        self.progress_label.text = "\n".join([f'Directory {self.current_dir} out of {self.total_dirs}',
+                                              f"{self.files_processed} files out of {self.total_files}",
+                                              f"{int(self.normalize() * 100)}% out of 100%"])
 
         self.progress_bar.value = self.normalize()
 
-        # if self.progress_bar.value == 1 and self.current_dir >= self.total_dirs:
-        if self.progress_bar.value == 1:
-            global time2
-            global time1
-            time2 = time.time()
-            print(time2 - time1, "seconds")
+        def bar_complete():
             self.progress_label.text += f"\nDONE!"
             self.progress_back_button.opacity = 1
             self.progress_back_button.disabled = False
 
-        # elif self.progress_bar.value == 1 and self.current_dir < self.total_dirs:
-        #     self.progress_bar.value = 0
+        if not self.parallelism:  # progress bar behaviour if parallelism is NOT enabled
+            if self.progress_bar.value == 1 and self.current_dir >= self.total_dirs:
+                bar_complete()
+
+            elif self.progress_bar.value == 1 and self.current_dir < self.total_dirs:
+                self.progress_bar.value = 0
+
+        if self.parallelism and self.progress_bar.value == 1:
+            bar_complete()
 
     def normalize(self):
         """
@@ -197,19 +202,18 @@ class LoadingScreen(Screen):
         self.framerate = d['framerate']
         self.is_gif = d['is_gif']
 
-        if self.grid_mode:
-            # self.total_files = get_total_files(self.inp, files=True)
+        if not self.parallelism:
+            self.total_files = get_total_files(d['inp'], files=d['grid_mode'], dirs=d['stack_mode'])
 
+        if self.grid_mode:
             for n in fetch_files(path=self.inp,
                                  outpath=self.out,
                                  dim_x=int(self.x_dim),
                                  dim_y=int(self.y_dim)):
                 self.files_processed += n
-                Clock.schedule_once(self.update_bar, 1.5)  # updates the progress bar through the Main thread
+                Clock.schedule_once(self.update_bar)  # updates the progress bar through the Main thread
 
         elif self.stack_mode:
-            # self.total_files = get_total_files(self.inp, dirs=True)
-
             for n in fetch_dirs(path=self.inp,
                                 outpath=self.out,
                                 gif=bool(self.is_gif),
@@ -225,9 +229,7 @@ class LoadingScreen(Screen):
 
         :param instance: button clicked
         """
-        # print("before", self.current_dir)
         self.current_dir = 1
-        # print("after", self.current_dir)
 
 
 class ProgressHeartbeat(Widget):
@@ -279,6 +281,7 @@ class WindowsFileChooser(Widget):
     y_dim = ObjectProperty(defaultvalue=2)
     framerate = ObjectProperty(defaultvalue=7)
     is_gif = ObjectProperty(defaultvalue=False)
+    parallelism = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         """
@@ -293,7 +296,7 @@ class WindowsFileChooser(Widget):
 
         self.dirs = {}
         # self.total_dirs = 1  # number of dirs
-        self.dirs_limit = 10 # max number of dirs allowed
+        self.dirs_limit = 10  # max number of dirs allowed
         self.current_dir = 1
 
     def check_values(self):
@@ -324,6 +327,7 @@ class WindowsFileChooser(Widget):
         """
         dirs_copy = copy.deepcopy(self.dirs)
         self.dirs.clear()
+        self.parallelism.active = False
 
         return dirs_copy
 
