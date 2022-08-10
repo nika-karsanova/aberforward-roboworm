@@ -1,3 +1,10 @@
+"""
+    This is the ImageGrouper module of the IBERS Image Merger program.
+    It contains a class that is responsible for the main functionality of the program.
+    Utilises Pillow, OpenCV, NumPy to perform required image and animation manipulations.
+    Allows to export image as a binary for display in GUI or as a image or video file (e.g., png).
+    """
+
 import cv2
 import numpy as np
 from PIL import Image
@@ -5,10 +12,10 @@ from PIL import Image
 
 class ImageGrouper:
     """
-    This is the ImageGrouper module of the IBERS Image Merger program.
-    It contains a class that is responsible for the main functionality of the program.
-    Utilises Pillow, OpenCV, NumPy to perform required image and animation manipulations.
-    Allows to export image as a binary for display in GUI or as a image or video file (e.g., png).
+    Class that combines all the functionality to merge images or animations for files provided.
+
+    Two variants of the implementation are provided: one using Pillow, another using NumPy.
+    NumPy is significantly quicker, but Pillow variants are left for reference.
     """
 
     def __init__(self,
@@ -118,7 +125,7 @@ class ImageGrouper:
         :param size_y: number of rows
         """
 
-        assert len(self.imgs) == size_x * size_y, "Number of images selected does not match number of images required"
+        # assert len(self.imgs) == size_x * size_y, "Number of images selected does not match number of images required"
 
         wip: list = []  # stores work in progress images
 

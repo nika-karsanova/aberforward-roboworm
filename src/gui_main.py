@@ -1,6 +1,8 @@
 """
 This is the main module of the IBERS Image Merger program.
-It is responsible for setting up the main module and configuring the behaviour of the program.
+It is responsible for setting up the main module and configuring the behaviour of the GUI.
+
+This file is an entry point for the Graphical User Interface.
 
 The main outputs can be categorized into multiple groups:
 

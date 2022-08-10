@@ -17,13 +17,12 @@ from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 
-from model.setup import fetch_files, fetch_dirs, get_total_files
+from model.setup import fetch_files, fetch_dirs, get_total_files, inpath_type
 
 # configuring the minimum window size allowed
 Window.minimum_height = 500
 Window.minimum_width = 700
 
-# TODO: add verification of the provided paths (e.g., that path for grids is not only valid but also has TIF files)
 # TODO: refactor some of the GUI elements
 # TODO: look into packaging the application using pyinstaller
 
@@ -81,6 +80,7 @@ class LoadingScreen(Screen):
         :param y_dim: if grid mode is True, number of rows
         :param framerate: if stack mode is True, framerate of animations to produce
         :param is_gif: if True, animations produced will be in GIF format. MP4 otherwise.
+        :param parallelism: if True, multi-threads the application
         """
         super().__init__(**kw)
 
@@ -191,6 +191,8 @@ class LoadingScreen(Screen):
         Takes in input from the GUI to establish the directories and other settings.
 
         Clock object triggers the update of the GUI in the main thread.
+
+        :param d: a dictionary containing information about the entry
         """
 
         self.inp = d['inp']
@@ -272,6 +274,7 @@ class WindowsFileChooser(Widget):
     :param y_dim: if grid mode is True, number of rows
     :param framerate: if stack mode is True, framerate of animations to produce
     :param is_gif: if True, animations produced will be in GIF format. MP4 otherwise.
+    :param parallelism: if True, multi-threads the application when running the merging.
     """
     inp = ObjectProperty(None)
     out = ObjectProperty(None)
@@ -295,7 +298,6 @@ class WindowsFileChooser(Widget):
         super().__init__(**kwargs)
 
         self.dirs = {}
-        # self.total_dirs = 1  # number of dirs
         self.dirs_limit = 10  # max number of dirs allowed
         self.current_dir = 1
 
@@ -385,12 +387,13 @@ class WindowsFileChooser(Widget):
 
     def path_validation(self):
         """
-        Verifies the existence of the paths to be used for fetching files.
+        Verifies the existence of the paths to be used for fetching files. Additionally, verifies the structure of files
+        is of expected input.
 
         :return True, if directories are valid. A popup will not be displayed. False otherwise.
         """
 
-        return os.path.isdir(self.inp.text) and os.path.isdir(self.out.text)
+        return os.path.isdir(self.inp.text) and os.path.isdir(self.out.text) and inpath_type(self.inp.text) == self.grid_mode.active
 
     def back(self):
         """

@@ -9,10 +9,40 @@ import cv2
 import model
 
 
+def inpath_type(inpath: str):
+    """
+    Return True if path provided is suitable for creation of grid images.
+    False if path provided is suitable for creation of stack images.
+    None, if path does not have valid contents.
+
+    :param inpath: path to check
+    """
+    frame_dirs = []
+
+    import re
+    for root, dirs, files in os.walk(inpath):
+        # grid
+        if root == inpath and len(dirs) == 0 and all(x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
+            return True
+
+        # stack root
+        elif root == inpath and len(files) == 0 and all(re.search(r'\d+$', x) for x in dirs):  # if dir name is of correct format
+            frame_dirs = dirs
+            continue
+
+        # stack folders
+        elif os.path.split(root)[-1] in frame_dirs and len(dirs) == 0 and all(x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
+            continue
+
+        else:
+            return None
+
+    return False
+
+
 def get_total_files(path: str,
                     files: bool = None,
                     dirs: bool = None):
-
     """
     Calculates total number of files to display in the progress bar.
 
@@ -72,8 +102,6 @@ def fetch_files(path: str,
         ig.grid(size_x=dim_x, size_y=dim_y)
         ig.export_image(filename=filename)
 
-    # time1 = time.time()
-
     # get files in dir while amending thumbnail variants of images
     files = [x for x in os.listdir(path) if 'Thumb' not in x and 'HTD' not in x]
     files = sorted(files)
@@ -86,24 +114,26 @@ def fetch_files(path: str,
 
     for file in files:
         yield 1
-        if file[:-4][-1] == '1' and len(temp) != 0:
-            process(temp, filename=os.path.join(outpath, dir_ref, provisional_filename), dim_x=dim_x, dim_y=dim_y)
-            temp.clear()
 
-        if len(temp) == 0:
-            lab = file[-10]  # A, B, C in the name
+        try:
+            if file[:-4][-1] == '1' and len(temp) != 0:
+                process(temp, filename=os.path.join(outpath, dir_ref, provisional_filename), dim_x=dim_x, dim_y=dim_y)
+                temp.clear()
 
-        if file[-10] != lab:
+            if len(temp) == 0 and file[:-4][-1] == '1':
+                lab = file[-10]  # A, B, C in the name
+
+            if file[-10] != lab:
+                continue
+
+            provisional_filename = f"{file[:-4][:-3]}_grid"
+            temp.append(cv2.imread(os.path.join(path, file)))
+
+        except IndexError:
             continue
-
-        provisional_filename = f"{file[:-4][:-3]}_grid"
-        temp.append(cv2.imread(os.path.join(path, file)))
 
     if len(temp) > 1:
         process(temp, os.path.join(outpath, dir_ref, provisional_filename), dim_x, dim_y)
-
-    # time2 = time.time()
-    # print(time2-time1)
 
 
 def fetch_dirs(path: str,
@@ -121,7 +151,6 @@ def fetch_dirs(path: str,
 
     :return yields 1 whenever a new file is being processed
     """
-    # time1 = time.time()
 
     dirs = [os.path.join(path, x) for x in os.listdir(path) if os.path.isdir(os.path.join(path, x))]
     dirs = sorted(dirs)
@@ -143,6 +172,3 @@ def fetch_dirs(path: str,
         ig = model.ImageGrouper(temp)
         ig.animation(framerate=framerate, gif=gif, filename=os.path.join(outpath, dir_ref, f"{f[:-4]}_stack"))
         temp.clear()
-
-    # time2 = time.time()
-    # print(time2 - time1)
