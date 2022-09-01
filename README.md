@@ -97,6 +97,10 @@ if it is getting flagged as malicious by various anti-virus products.
 If you are happy with your executable, you can use it as is or use a tool like Inno Setup to build an Installer for it.
 For example, using a tutorial like [this one](https://www.geeksforgeeks.org/convert-python-code-to-a-software-to-install-on-windows-using-inno-setup-compiler/).
 
+## Application executable ##
+
+You can now download the application using releases on GitHub. Latest release can be found [here](https://github.com/nika-karsanova/aberforward-roboworm/releases/tag/v1.0.0)!
+
 ## Notes ##
 
 This piece of software has been thoroughly tested manually, but some bugs may still remain. No additions to the software, however,
