@@ -3,10 +3,11 @@ This module sets up the logic of accessing and creating images using ImageGroupe
 """
 
 import os
+import re
 
 import cv2
 
-import model
+import src.model.image_grouper as model
 
 
 def inpath_type(inpath: str):
@@ -19,19 +20,20 @@ def inpath_type(inpath: str):
     """
     frame_dirs = []
 
-    import re
     for root, dirs, files in os.walk(inpath):
         # grid
         if root == inpath and len(dirs) == 0 and all(x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
             return True
 
         # stack root
-        elif root == inpath and len(files) == 0 and all(re.search(r'\d+$', x) for x in dirs):  # if dir name is of correct format
+        elif root == inpath and len(files) == 0 and all(
+                re.search(r'\d+$', x) for x in dirs):  # if dir name is of correct format
             frame_dirs = dirs
             continue
 
         # stack folders
-        elif os.path.split(root)[-1] in frame_dirs and len(dirs) == 0 and all(x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
+        elif os.path.split(root)[-1] in frame_dirs and len(dirs) == 0 and all(
+                x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
             continue
 
         else:

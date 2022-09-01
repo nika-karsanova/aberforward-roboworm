@@ -9,22 +9,21 @@ import tkinter as tk
 from queue import Queue
 from tkinter import filedialog
 
+import psutil
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.widget import Widget
 
-from model.setup import fetch_files, fetch_dirs, get_total_files, inpath_type
+from src.model.setup import fetch_files, fetch_dirs, get_total_files, inpath_type
 
 # configuring the minimum window size allowed
 Window.minimum_height = 500
 Window.minimum_width = 700
-
-# TODO: refactor some of the GUI elements
-# TODO: look into packaging the application using pyinstaller
 
 
 class WindowManager(ScreenManager):
@@ -140,7 +139,6 @@ class LoadingScreen(Screen):
         for item in self.dirs:
             q.put(self.dirs[item])
 
-        import psutil
         thread_max = 1 if not self.parallelism else psutil.cpu_count(logical=True) // 2
         thread_max = len(self.dirs) if len(self.dirs) < thread_max else thread_max
 
@@ -393,7 +391,8 @@ class WindowsFileChooser(Widget):
         :return True, if directories are valid. A popup will not be displayed. False otherwise.
         """
 
-        return os.path.isdir(self.inp.text) and os.path.isdir(self.out.text) and inpath_type(self.inp.text) == self.grid_mode.active
+        return os.path.isdir(self.inp.text) and os.path.isdir(self.out.text) and inpath_type(
+            self.inp.text) == self.grid_mode.active
 
     def back(self):
         """
@@ -441,8 +440,9 @@ class Application(App):
     """
     Used to instantiate application object.
     """
-    title = "Roboworm Image Grouper"
-    kv_file = "ui/gui/kv_files/app.kv"
+    title = "Roboworm Assistant"
+    kv_file = "src/ui/gui/app.kv"
+    icon = "resources/icons/worm.png"
 
     def build(self):
         """

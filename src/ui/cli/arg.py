@@ -3,8 +3,8 @@ Configuration of Argument Parser object to use as a CLI interface of the applica
 """
 import argparse
 import os
-import sys
-import model.setup as setup
+
+import src.model.setup as setup
 
 
 def arg_init():

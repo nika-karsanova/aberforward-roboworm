@@ -2,7 +2,7 @@
 This is the main module of the IBERS Image Merger program.
 It is responsible for setting up the main module and configuring the behaviour of the GUI.
 
-This file is an entry point for the Graphical User Interface.
+This file is an entry point of the Command-Line Interface.
 
 The main outputs can be categorized into multiple groups:
 
@@ -14,7 +14,7 @@ The main outputs can be categorized into multiple groups:
 __author__ = 'Nika Karsanova'
 __email__ = 'vek2@aber.ac.uk'
 
-import ui.gui.app as app
+from src.__main__ import cli_main
 
 if __name__ == '__main__':
-    app.run()
+    cli_main()
