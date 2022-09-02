@@ -309,7 +309,12 @@ class WindowsFileChooser(Widget):
         grid_reqs = {self.inp.text, self.out.text, self.x_dim.text, self.y_dim.text}
         stack_reqs = {self.inp.text, self.out.text, self.framerate.text}
 
-        return self.grid_mode.active and "" in grid_reqs or self.stack_mode.active and "" in stack_reqs
+        dims = {self.x_dim.text, self.y_dim.text}
+
+        grid = self.grid_mode.active and (not all(str.isdigit(d) for d in dims) or "" in grid_reqs)
+        stack = self.stack_mode.active and (not str.isdigit(self.framerate.text) or "" in stack_reqs)
+
+        return grid or stack
 
     def confirm_dir_total(self):
         """
