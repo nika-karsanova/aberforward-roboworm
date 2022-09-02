@@ -101,8 +101,10 @@ def fetch_files(path: str,
         """
 
         ig = model.ImageGrouper(temp[:dim_x * dim_y])
-        ig.grid(size_x=dim_x, size_y=dim_y)
-        ig.export_image(filename=filename)
+
+        export = ig.grid(size_x=dim_x, size_y=dim_y)
+        if export:
+            ig.export_image(filename=filename)
 
     # get files in dir while amending thumbnail variants of images
     files = [x for x in os.listdir(path) if 'Thumb' not in x and 'HTD' not in x]

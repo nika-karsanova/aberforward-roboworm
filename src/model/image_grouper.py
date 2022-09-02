@@ -114,7 +114,7 @@ class ImageGrouper:
 
     def grid(self,
              size_x: int = 2,
-             size_y: int = 2):
+             size_y: int = 2) -> bool:
 
         """
         Function to generate a tiles (grid) image palette from the loaded in files.
@@ -125,7 +125,8 @@ class ImageGrouper:
         :param size_y: number of rows
         """
 
-        # assert len(self.imgs) == size_x * size_y, "Number of images selected does not match number of images required"
+        if len(self.imgs) != size_x * size_y:  # Number of images selected does not match number of images required
+            return False
 
         wip: list = []  # stores work in progress images
 
@@ -143,6 +144,8 @@ class ImageGrouper:
 
         self.merged_image[:f_offset, :wip[0].shape[1], :3] = wip[0]
         self.merged_image[f_offset:f_offset + wip[1].shape[0], :wip[1].shape[1]] = wip[1]
+
+        return True
 
     def animation(self,
                   framerate: int = 7,
