@@ -22,18 +22,18 @@ def inpath_type(inpath: str):
 
     for root, dirs, files in os.walk(inpath):
         # grid
-        if root == inpath and len(dirs) == 0 and all(x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
+        if root == inpath and len(dirs) == 0 and all(x.lower().endswith(('tif', 'png', 'jpg', 'htd')) for x in files):
             return True
 
         # stack root
-        elif root == inpath and len(files) == 0 and all(
+        elif root == inpath and len(files) == 1 and all(x.lower().endswith('htd') for x in files) and all(
                 re.search(r'\d+$', x) for x in dirs):  # if dir name is of correct format
             frame_dirs = dirs
             continue
 
         # stack folders
         elif os.path.split(root)[-1] in frame_dirs and len(dirs) == 0 and all(
-                x.lower().endswith(('tif', 'png', 'jpg')) for x in files):
+                x.lower().endswith(('tif', 'png', 'jpg', 'htd')) for x in files):
             continue
 
         else:
