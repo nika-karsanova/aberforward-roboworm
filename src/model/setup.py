@@ -107,7 +107,7 @@ def fetch_files(path: str,
             ig.export_image(filename=filename)
 
     # get files in dir while amending thumbnail variants of images
-    files = [x for x in os.listdir(path) if 'Thumb' not in x and 'HTD' not in x]
+    files = [x for x in os.listdir(path) if 'thumb' not in x.lower() and 'htd' not in x.lower()]
     files = sorted(files)
 
     temp = []
@@ -160,7 +160,7 @@ def fetch_dirs(path: str,
     dirs = sorted(dirs)
 
     # fetch names of files to act as first frames
-    filenames = [x for x in os.listdir(dirs[0]) if 'Thumb' not in x and 'HTD' not in x]
+    filenames = [x for x in os.listdir(dirs[0]) if 'thumb' not in x.lower() and 'htd' not in x.lower()]
     dir_ref = f"{path.split('/')[-1]}_out"
     os.makedirs(os.path.join(outpath, dir_ref), exist_ok=True)
 
