@@ -131,7 +131,7 @@ class ImageGrouper:
         wip: list = []  # stores work in progress images
 
         offset = 0
-        for _ in range(size_x):  # generate top image, bottom image etc.
+        for _ in range(size_y):  # generate top image, bottom image etc.
             self.unite(self.files[offset:offset + size_x])  # makes image row
             wip.append(self.merged_image)
             offset += size_x  # shift offset
@@ -143,7 +143,10 @@ class ImageGrouper:
         f_offset = wip[0].shape[0]
 
         self.merged_image[:f_offset, :wip[0].shape[1], :3] = wip[0]
-        self.merged_image[f_offset:f_offset + wip[1].shape[0], :wip[1].shape[1]] = wip[1]
+
+        for i in range(1, len(wip)):
+            self.merged_image[f_offset:f_offset + wip[i].shape[0], :wip[i].shape[1], :3] = wip[i]
+            f_offset += wip[i].shape[0]
 
         return True
 

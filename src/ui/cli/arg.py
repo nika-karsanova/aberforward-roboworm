@@ -37,10 +37,12 @@ def arg_init():
     p.add_argument('inpath', type=validate, help='Directory to fetch the images from.')
     p.add_argument('outpath', type=validate, help='Directory to output the files into.')
 
-    p.add_argument('-dim', type=int, nargs=2, help='Dimensions of the grid to be made. Defaults to 2x2.',
+    p.add_argument('-dim', type=int, choices=range(1, 1000), metavar="[1-1000]", nargs=2,
+                   help='Dimensions of the grid to be made. Defaults to 2x2.',
                    default=(2, 2))
 
-    p.add_argument('-fr', '-framerate', type=int, help='Framerate of the stack to be made. Defaults to 7.',
+    p.add_argument('-fr', '-framerate', type=int, choices=range(1, 1000), metavar="[1-1000]",
+                   help='Framerate of the stack to be made. Defaults to 7.',
                    default=7)
 
     p.add_argument('-g', '-gif', type=bool, help="True, if you want the stack to be made as a GIF. Defaults to True.",

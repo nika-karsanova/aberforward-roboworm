@@ -311,8 +311,15 @@ class WindowsFileChooser(Widget):
 
         dims = {self.x_dim.text, self.y_dim.text}
 
-        grid = self.grid_mode.active and (not all(str.isdigit(d) for d in dims) or "" in grid_reqs)
-        stack = self.stack_mode.active and (not str.isdigit(self.framerate.text) or "" in stack_reqs)
+        def valid_numerical(d):
+            if not str.isdigit(d):
+                return False
+
+            elif str.isdigit(d) and int(d) in range(1, 1000):
+                return True
+
+        grid = self.grid_mode.active and (not all(valid_numerical(d) for d in dims) or "" in grid_reqs)
+        stack = self.stack_mode.active and (not valid_numerical(self.framerate.text) or "" in stack_reqs)
 
         return grid or stack
 
