@@ -106,6 +106,8 @@ You can now download the application using releases on GitHub. Latest release ca
 This piece of software has been thoroughly tested manually, but some bugs may still remain. No additions to the software, however,
 are planned at this time.
 
+A tutorial for the software can be found at the following [link](https://youtu.be/7Hk8JZt_Oag).
+
 ## References ##
 
 Icon - [Worm icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/worm)
