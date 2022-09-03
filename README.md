@@ -99,7 +99,7 @@ For example, using a tutorial like [this one](https://www.geeksforgeeks.org/conv
 
 ## Application executable ##
 
-You can now download the application using releases on GitHub. Latest release can be found [here](https://github.com/nika-karsanova/aberforward-roboworm/releases/tag/v1.0.1)!
+You can now download the application using releases on GitHub. Latest release can be found [here](https://github.com/nika-karsanova/aberforward-roboworm/releases/tag/v1.0.2)!
 
 ## Notes ##
 
